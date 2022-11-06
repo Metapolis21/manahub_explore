@@ -232,7 +232,12 @@ const MainFooter = () => {
           </Row>
         </div>
       )}
-
+      <div
+        style={{
+          background: "linear-gradient(180deg, #0e0a35 0%, #0e0a35 100%)",
+        }}
+        id="google_translate_element"
+      ></div>
       <div className={styles.container}>
         <Row className={styles.bottomFooter} justify="space-between">
           <Col>
@@ -275,9 +280,7 @@ const MainFooter = () => {
               </div> */}
           {/* </div> */}
           {/* </Col> */}
-          <Col>
-            <div id="google_translate_element"></div>
-          </Col>
+          <Col></Col>
         </Row>
       </div>
     </Footer>
