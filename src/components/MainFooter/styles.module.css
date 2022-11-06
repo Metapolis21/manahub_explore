@@ -275,6 +275,7 @@
   .menuItems {
     flex-direction: column;
   }
+
   .menuItems a {
     margin-bottom: 16px;
     font-size: 14px;
