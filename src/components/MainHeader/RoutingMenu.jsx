@@ -372,12 +372,6 @@ const RoutingMenu = ({ isOpen, visileSubMenu, setVisileSubMenu }) => {
               )}
             </div>
           </div>
-          <div
-            style={{
-              background: "linear-gradient(180deg, #0e0a35 0%, #0e0a35 100%)",
-            }}
-            id="google_translate_element"
-          ></div>
         </div>
       </div>
     )
