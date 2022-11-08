@@ -43,7 +43,7 @@ const App = ({ isServerInfo }) => {
       {
         pageLanguage: "en",
         autoDisplay: false,
-        layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+        // layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
       },
       "google_translate_element"
     );
@@ -57,6 +57,7 @@ const App = ({ isServerInfo }) => {
     document.body.appendChild(addScript);
     window.googleTranslateElementInit = googleTranslateElementInit;
   }, []);
+
   // const styles = {
   //   header: {
   //     textAlign: "center",
