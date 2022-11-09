@@ -81,8 +81,6 @@ const CollectionCard = ({ item }) => {
     timeErr: false,
   });
 
-  console.log("chainId", chainId);
-
   const contractWeb3ABIJson = JSON.parse(auctionABI);
 
   useEffect(() => {
