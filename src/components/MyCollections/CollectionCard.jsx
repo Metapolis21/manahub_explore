@@ -13,7 +13,7 @@ import React, { useState, useEffect } from "react";
 import styless from "./MyCollections.module.css";
 import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
 import AddressInput from "../AddressInput";
-import { useWeb3ExecuteFunction } from "react-moralis";
+import { useChain, useWeb3ExecuteFunction } from "react-moralis";
 import { getExplorer } from "helpers/networks";
 import { useMoralis } from "react-moralis";
 import { useHistory } from "react-router-dom";
@@ -51,8 +51,9 @@ const CollectionCard = ({ item }) => {
   const [category, setCategory] = useState([]);
   const [nftToSend, setNftToSend] = useState(null);
   const [nftToSell, setNftToSell] = useState({});
-  const { chainId, marketAddress, contractABI } = useMoralisDapp();
+  const { marketAddress, contractABI } = useMoralisDapp();
   const { Moralis, authenticate, account } = useMoralis();
+  const { chainId } = useChain();
 
   const contractABIJson = JSON.parse(contractABI);
   const ItemImage = Moralis.Object.extend("ItemImages");
@@ -79,6 +80,8 @@ const CollectionCard = ({ item }) => {
     categoryErr: false,
     timeErr: false,
   });
+
+  console.log("chainId", chainId);
 
   const contractWeb3ABIJson = JSON.parse(auctionABI);
 
@@ -577,6 +580,7 @@ const CollectionCard = ({ item }) => {
         ) : mediaType.includes("audio") ? (
           <audio className={styless.image} width="350" controls>
             {" "}
+            mediaSrc
             <source src={mediaSrc} type={mediaType}></source>
           </audio>
         ) : (
