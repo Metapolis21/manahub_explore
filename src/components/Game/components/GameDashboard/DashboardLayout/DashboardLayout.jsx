@@ -17,7 +17,6 @@ const DashboardLayout = ({ setShow, show }) => {
   const [NFTs, setNFTs] = useState([]);
   const web3Js = new Web3(new Web3.providers.WebsocketProvider('wss://ws-nd-524-739-052.p2pify.com/9984e6c12c83e092549386bc36509a29'));
   const smNFTs = new web3Js.eth.Contract(abiCollection, addrCollection);
-  let arr = [];
 
   const getNFTs = async () => {
     try {
@@ -44,10 +43,9 @@ const DashboardLayout = ({ setShow, show }) => {
               tokenId: tokenId,
               name: metadata.name,
             }
-            arr.push(item);
+            setNFTs((NFTs) => [...NFTs, item]);
           }
         }
-        setNFTs(arr);
       }
     } catch (error) {
       console.log(error);
@@ -58,6 +56,7 @@ const DashboardLayout = ({ setShow, show }) => {
   useEffect(() => {
     if (isAuthenticated) {
       if (account) {
+        setNFTs([]);
         getNFTs();
       }
     } else {

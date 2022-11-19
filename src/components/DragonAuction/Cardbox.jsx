@@ -13,6 +13,7 @@ import {
 import Constants from "constant";
 import { getCollectionByAddress } from "helpers/collection";
 import { checkWalletConnection } from "helpers/auth";
+import { ethers } from "ethers";
 
 let clickBuy = false;
 let checkInstallMetamask = true;
@@ -135,7 +136,8 @@ const Cardbox = () => {
   }
   async function mint() {
     setLoading(true);
-    const tokenPrice = amount * Constants.NFT_PRICE * 10 ** 18;
+    const tokenPrice = ethers.utils.parseEther((amount * Constants.NFT_PRICE).toString());
+    console.log("Token price", tokenPrice?.toString());
     const ops = {
       contractAddress: nftCollectionAddr,
       functionName: "mint",
@@ -143,7 +145,7 @@ const Cardbox = () => {
       params: {
         _mintAmount: amount,
       },
-      msgValue: tokenPrice,
+      msgValue: tokenPrice?.toString(),
     };
     console.log("Options", ops);
     await contractProcessor.fetch({
@@ -159,9 +161,9 @@ const Cardbox = () => {
         clickBuy = false;
       },
       onError: (error) => {
-        console.log(error);
+        console.error(error);
         setLoading(false);
-        failPurchase(`There was a problem when buy this NFT`);
+        failPurchase(error?.data?.message ?? error?.message ?? "Something went wrong when minting NFT");
       },
     });
   }
