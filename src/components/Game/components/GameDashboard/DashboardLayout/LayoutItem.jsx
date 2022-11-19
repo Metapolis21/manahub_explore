@@ -79,27 +79,27 @@ const LayoutItem = ({ item, type, image }) => {
     });
   }
 
-   async function approveAll() {
+   async function approve() {
       console.log("Approve all on blockchain")
       const ops = {
         contractAddress: addrCollection,
-        functionName: "setApprovalForAll",
+        functionName: "approve",
         abi: abiCollection,
         params: {
-          operator: addrStaking,
-          approved: true
+          to: addrStaking,
+          tokenId: item?.tokenId
         },
       };
       await contractProcessor.fetch({
         params: ops,
         onSuccess: async () => {
-          console.log("Approve all success");
+          console.log("Approve success");
           await staking();
         },
         onError: (error) => {
           setIsLoading(false)
-          failureModal("Approve all failed", error.message);
-          console.log("Approve all failed");
+          failureModal("Approve failed", error.message);
+          console.log("Approve failed");
           return new Promise((resolve, reject) => reject(error))
         }
       });
@@ -107,7 +107,7 @@ const LayoutItem = ({ item, type, image }) => {
 
   async function handleStakingClicked() {
     setIsLoading(true);
-    await checkWalletConnection(isAuthenticated, authenticate, approveAll)
+    await checkWalletConnection(isAuthenticated, authenticate, approve)
   }
   return (
     <div className={clsx([styles.layoutItem, styles[type]])}>
