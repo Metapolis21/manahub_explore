@@ -80,7 +80,7 @@ const LayoutItem = ({ item, type, image }) => {
   }
 
    async function approve() {
-      console.log("Approve all on blockchain")
+      console.log("Approve on blockchain")
       const ops = {
         contractAddress: addrCollection,
         functionName: "approve",
