@@ -98,7 +98,7 @@ const LayoutItem = ({ item, type, image }) => {
         },
         onError: (error) => {
           setIsLoading(false)
-          failureModal("Approve failed", error.message);
+          failureModal("Approve failed", error?.data?.message ?? error.message ?? "Something went wrong");
           console.log("Approve failed");
           return new Promise((resolve, reject) => reject(error))
         }
