@@ -65,7 +65,7 @@ const DashboardLayout = ({ setShow, show }) => {
           const balanceOf = await contract.balanceOf(account);
           console.log("BalanceOf", balanceOf.toString());
           setBalance(balanceOf.toString())
-          getNFTs()
+          await getNFTs()
         })()
       }
     } else {
