@@ -8,8 +8,9 @@ import { useMoralis, useWeb3ExecuteFunction } from 'react-moralis';
 import Constants from "constant";
 import { checkWalletConnection } from "helpers/auth";
 import { failureModal } from "helpers/modals";
+import { ethers } from "ethers";
 
-const LayoutItem = ({ item, type, image }) => {
+const LayoutItem = ({ item, type, image, setBalance }) => {
   const { Moralis, authenticate, account, isAuthenticated } = useMoralis();
   const serverURL = process.env.REACT_APP_MORALIS_SERVER_URL;
   const appId = process.env.REACT_APP_MORALIS_APPLICATION_ID;
@@ -21,8 +22,13 @@ const LayoutItem = ({ item, type, image }) => {
   const abiCollection = JSON.parse(Constants.contracts.NFT_COLLECTION_ABI);
   const contractProcessor = useWeb3ExecuteFunction();
   const [isLoading, setIsLoading] = useState(false);
-  
-    const saveStakingInfo = async () => {
+  const userSigner = new ethers.providers.Web3Provider(
+    window.ethereum
+  ).getSigner();
+  const contractNFT = new ethers.Contract(addrCollection, abiCollection, userSigner)
+  const contractStaking = new ethers.Contract(addrStaking, abiStaking, userSigner)
+
+  const saveStakingInfo = async () => {
     const Staking = Moralis.Object.extend("Staking");
     const query = new Moralis.Query(Staking);
     query.equalTo("tokenId", item.tokenId);
@@ -44,66 +50,72 @@ const LayoutItem = ({ item, type, image }) => {
       staking.set("description", item.description);
       await staking.save();
     }
-    else{
+    else {
       result.set("stakeTime", new Date());
       result.set("unstake", false);
       await result.save();
     }
+    const balanceOf = await contractNFT.balanceOf(account);
+    console.log("BalanceOf", balanceOf.toString());
+    setBalance(balanceOf.toString())
     console.log("Save success")
     setIsLoading(false)
   }
 
-  async function staking() {
-    console.log("Staking nft on blockchain")
-    const ops = {
-      contractAddress: addrStaking,
-      functionName: "stake",
-      abi: abiStaking,
-      params: {
-        _tokenIds: [item.tokenId]
-      },
-    };
-    await contractProcessor.fetch({
-      params: ops,
-      onSuccess: async () => {
-        console.log("Staking success");
-        await saveStakingInfo(); 
-        window.location.reload();
-      },
-      onError: (error) => {
-        setIsLoading(false)
-        failureModal("Staking failed", error.message);
-        console.log("Staking failed");
-        return new Promise((resolve, reject) => reject(error));
-      }
-    });
-  }
 
-   async function approve() {
-      console.log("Approve on blockchain")
-      const ops = {
-        contractAddress: addrCollection,
-        functionName: "approve",
-        abi: abiCollection,
-        params: {
-          to: addrStaking,
-          tokenId: item?.tokenId
-        },
-      };
-      await contractProcessor.fetch({
-        params: ops,
-        onSuccess: async () => {
-          console.log("Approve success");
-          await staking();
-        },
-        onError: (error) => {
-          setIsLoading(false)
-          failureModal("Approve failed", error?.data?.message ?? error.message ?? "Something went wrong");
-          console.log("Approve failed");
-          return new Promise((resolve, reject) => reject(error))
+  async function approve() {
+    const tokenId = item?.tokenId.toString()
+    try {
+      console.log("Approve tokenId", tokenId)
+      const txApprove = await contractNFT.approve(addrStaking, tokenId);
+      await txApprove.wait();
+      console.log("Tx approve hash", txApprove.hash);
+      console.log("Stake tokenId", tokenId);
+      const txStake = await contractStaking.stake([tokenId])
+      await txStake.wait();
+      console.log("Tx stake hash", txStake.hash);
+      await saveStakingInfo()
+      setIsLoading(false)
+      window.location.reload()
+    } catch (err) {
+      setIsLoading(false);
+      const error = { err };
+      console.log("Place Bet Error", error);
+      const reason = error?.err?.reason?.toString() ?? error?.err?.message?.toString();
+      if (reason?.length !== 0) {
+        if (reason === "execution reverted: Can't stake tokens you don't own!") {
+          failureModal("Stake Error", "You don't own this nft")
+        } else {
+          failureModal("Stake Error", reason)
         }
-      });
-  } 
+
+      }
+    }
+    // const ops = {
+    //   contractAddress: addrCollection,
+    //   functionName: "approve",
+    //   abi: abiCollection,
+    //   params: {
+    //     to: addrStaking,
+    //     tokenId: item?.tokenId
+    //   },
+    // };
+    // await contractProcessor.fetch({
+    //   params: ops,
+    //   onSuccess: () => {
+    //     console.log("Approve success");
+    //     (async () => {
+    //       await staking()
+    //     })()
+    //   },
+    //   onError: (error) => {
+    //     setIsLoading(false)
+    //     failureModal("Approve failed", error?.data?.message ?? error.message ?? "Something went wrong");
+    //     console.log("Approve failed");
+    //     return new Promise((resolve, reject) => reject(error))
+    //   }
+    // });
+  }
 
   async function handleStakingClicked() {
     setIsLoading(true);
@@ -128,7 +140,7 @@ const LayoutItem = ({ item, type, image }) => {
         <Button
           style={{ marginBottom: 5, marginTop: "auto" }}
           className={styles.startStakingBtn}
-          loading = {isLoading}
+          loading={isLoading}
           onClick={() => handleStakingClicked()}
           block
         >
