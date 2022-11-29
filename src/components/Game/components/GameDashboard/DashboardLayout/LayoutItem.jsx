@@ -22,11 +22,6 @@ const LayoutItem = ({ item, type, image, setBalance }) => {
   const abiCollection = JSON.parse(Constants.contracts.NFT_COLLECTION_ABI);
   const contractProcessor = useWeb3ExecuteFunction();
   const [isLoading, setIsLoading] = useState(false);
-  const userSigner = new ethers.providers.Web3Provider(
-    window.ethereum
-  ).getSigner();
-  const contractNFT = new ethers.Contract(addrCollection, abiCollection, userSigner)
-  const contractStaking = new ethers.Contract(addrStaking, abiStaking, userSigner)
 
   const saveStakingInfo = async () => {
     const Staking = Moralis.Object.extend("Staking");
@@ -55,9 +50,9 @@ const LayoutItem = ({ item, type, image, setBalance }) => {
       result.set("unstake", false);
       await result.save();
     }
-    const balanceOf = await contractNFT.balanceOf(account);
-    console.log("BalanceOf", balanceOf.toString());
-    setBalance(balanceOf.toString())
+    // const balanceOf = await contractNFT.balanceOf(account);
+    // console.log("BalanceOf", balanceOf.toString());
+    // setBalance(balanceOf.toString())
     console.log("Save success")
     setIsLoading(false)
   }
@@ -66,6 +61,11 @@ const LayoutItem = ({ item, type, image, setBalance }) => {
   async function approve() {
     const tokenId = item?.tokenId.toString()
     try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const userSigner = provider.getSigner()
+      console.log("User signer", userSigner);
+      const contractNFT = new ethers.Contract(addrCollection, abiCollection, userSigner)
+      const contractStaking = new ethers.Contract(addrStaking, abiStaking, userSigner)
       console.log("Approve tokenId", tokenId)
       const txApprove = await contractNFT.approve(addrStaking, tokenId);
       await txApprove.wait();
@@ -80,7 +80,7 @@ const LayoutItem = ({ item, type, image, setBalance }) => {
     } catch (err) {
       setIsLoading(false);
       const error = { err };
-      console.log("Place Bet Error", error);
+      console.log("Stake Error", error);
       const reason = error?.err?.reason?.toString() ?? error?.err?.message?.toString();
       if (reason?.length !== 0) {
         if (reason === "execution reverted: Can't stake tokens you don't own!") {
