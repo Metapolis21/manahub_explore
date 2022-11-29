@@ -9,11 +9,15 @@ import { useState, useEffect } from "react";
 import { useMoralis, useWeb3ExecuteFunction } from 'react-moralis';
 import Web3 from "web3";
 import Constants from "constant";
+import { ethers } from "ethers";
 
 const GameDashboardContent = ({ setShow, show }) => {
+  const [balance, setBalance] = useState(0);
   const serverURL = process.env.REACT_APP_MORALIS_SERVER_URL;
   const appId = process.env.REACT_APP_MORALIS_APPLICATION_ID;
   const [isLoading, setIsLoading] = useState(false);
+  const abiCollection = JSON.parse(Constants.contracts.NFT_COLLECTION_ABI);
+  const addrCollection = Constants.contracts.NFT_COLLECTION_ADDRESS;
   const { Moralis, account, isAuthenticated } = useMoralis();
   Moralis.initialize(appId);
   Moralis.serverURL = serverURL;
@@ -68,7 +72,14 @@ const GameDashboardContent = ({ setShow, show }) => {
   
   useEffect(() => {
     if (isAuthenticated && account) {
-      getNFTs();
+        (async () => {
+          const provider = new ethers.providers.WebSocketProvider('wss://ws-nd-524-739-052.p2pify.com/9984e6c12c83e092549386bc36509a29');
+          const contract = new ethers.Contract(addrCollection, abiCollection, provider);
+          const balanceOf = await contract.balanceOf(account);
+          console.log("BalanceOf", balanceOf.toString());
+          setBalance(balanceOf.toString())
+          await getNFTs()
+        })()
     } else {
       setNFTs([]);
     }
@@ -88,6 +99,7 @@ const GameDashboardContent = ({ setShow, show }) => {
         setShow={setShow}
         show={show}
         extraCn={styles.gameDashboardHeaderMobile}
+        balance={balance}
       />
 
       <div className={clsx(styles.gameDashboardTitle)}>Staking</div>
