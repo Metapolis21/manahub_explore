@@ -29,7 +29,7 @@ const GameDashboardContent = ({ setShow, show }) => {
   const addrStaking = Constants.contracts.STAKING_ADDRESS;
   const contractProcessor = useWeb3ExecuteFunction();
   const smStaking = new web3Js.eth.Contract(abiStaking, addrStaking);
-
+  console.log("Nfts", NFTs)
   const claim = async () => {
     setIsLoading(true);
     console.log('claim');
@@ -61,6 +61,7 @@ const GameDashboardContent = ({ setShow, show }) => {
     query.equalTo("addressStaking", addrStaking);
     query.equalTo("unstake", false);
     const arrObj = await query.find();
+    console.log("arrObj", arrObj)
     setNFTs(arrObj);
   };
 
@@ -73,12 +74,13 @@ const GameDashboardContent = ({ setShow, show }) => {
   useEffect(() => {
     if (isAuthenticated && account) {
         (async () => {
-          const provider = new ethers.providers.WebSocketProvider('wss://ws-nd-524-739-052.p2pify.com/9984e6c12c83e092549386bc36509a29');
+          await getNFTs()
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          // const provider = new ethers.providers.WebSocketProvider('wss://ws-nd-524-739-052.p2pify.com/9984e6c12c83e092549386bc36509a29');
           const contract = new ethers.Contract(addrCollection, abiCollection, provider);
           const balanceOf = await contract.balanceOf(account);
           console.log("BalanceOf", balanceOf.toString());
           setBalance(balanceOf.toString())
-          await getNFTs()
         })()
     } else {
       setNFTs([]);
