@@ -83,7 +83,29 @@ const CollectionCard = ({ item }) => {
   });
 
   const contractWeb3ABIJson = JSON.parse(auctionABI);
+  async function getItemType() {
+    try {
+      // console.log(item?.image);
+      let url = item?.image;
+      if (
+        item?.image.substring(8, 12) === "ipfs" &&
+        !url.includes(`https://${Constants.GATEWAY_HOSTNAME}`)
+      ) {
+        url = item?.image.replace(
+          /^.{28}/g,
+          `https://${Constants.GATEWAY_HOSTNAME}`
+        );
+      }
 
+      // let req = await fetch(url);
+      console.log("url", url);
+      // console.log(await req.headers.get("content-type"));
+      // item.type = await req.headers.get("content-type");
+      // setMediaType(item.type);
+    } catch (error) {
+      console.log(error);
+    }
+  }
   useEffect(() => {
     // const findExistNftMarket = async (item) => {
     //   // const ListedItem = Moralis.Object.extend("ItemImages");
@@ -94,34 +116,11 @@ const CollectionCard = ({ item }) => {
     //   return result
     // }
 
-    async function getItemType() {
-      try {
-        // console.log(item?.image);
-        let url = item?.image;
-        if (
-          item?.image.substring(8, 12) === "ipfs" &&
-          !url.includes(`https://${Constants.GATEWAY_HOSTNAME}`)
-        ) {
-          url = item?.image.replace(
-            /^.{28}/g,
-            `https://${Constants.GATEWAY_HOSTNAME}`
-          );
-        }
-        let req = await fetch(url);
-        // console.log(await req.headers.get("content-type"));
-        item.type = await req.headers.get("content-type");
-        setMediaType(item.type);
-      } catch (error) {
-        console.log(error);
-      }
+    if (item?.image) {
+      getItemType();
+      setMediaSrc(item.image);
     }
-    if (item) {
-      if (item.image) {
-        getItemType();
-        setMediaSrc(item.image);
-      }
-    }
-  }, [Moralis, ItemImage, contractABIJson, marketAddress, item]);
+  }, [item]);
 
   const handleSellClick = (item) => {
     // console.log(item)

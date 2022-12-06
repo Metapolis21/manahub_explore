@@ -9,6 +9,7 @@ import Constants from "constant";
 
 const MyCollections = memo((props) => {
   const { data: NFTBalances, isFetching } = useNFTBalances();
+
   const [user, setUser] = useState("Manahubs");
   const { Moralis, account, isAuthenticated } = useMoralis();
   const serverURL = process.env.REACT_APP_MORALIS_SERVER_URL;
