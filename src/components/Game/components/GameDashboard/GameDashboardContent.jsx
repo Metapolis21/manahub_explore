@@ -6,7 +6,7 @@ import { Button } from "antd";
 import LayoutItemContent from "./DashboardLayout/LayoutItemContent";
 import DashboardLayoutHeader from "./DashboardLayout/DashboardLayoutHeader";
 import { useState, useEffect } from "react";
-import { useMoralis, useWeb3ExecuteFunction } from 'react-moralis';
+import { useMoralis, useWeb3ExecuteFunction } from "react-moralis";
 import Web3 from "web3";
 import Constants from "constant";
 import { ethers } from "ethers";
@@ -21,7 +21,9 @@ const GameDashboardContent = ({ setShow, show }) => {
   const { Moralis, account, isAuthenticated } = useMoralis();
   Moralis.initialize(appId);
   Moralis.serverURL = serverURL;
-  const web3Js = new Web3(Web3.givenProvider || 'https://data-seed-prebsc-1-s1.binance.org:8545/');
+  const web3Js = new Web3(
+    Web3.givenProvider || "https://data-seed-prebsc-1-s1.binance.org:8545/"
+  );
   const [total, setTotal] = useState(0);
   const [NFTs, setNFTs] = useState([]);
   const NFTaddr = Constants.contracts.NFT_COLLECTION_ADDRESS;
@@ -29,16 +31,15 @@ const GameDashboardContent = ({ setShow, show }) => {
   const addrStaking = Constants.contracts.STAKING_ADDRESS;
   const contractProcessor = useWeb3ExecuteFunction();
   const smStaking = new web3Js.eth.Contract(abiStaking, addrStaking);
-  console.log("Nfts", NFTs)
+  // console.log("Nfts", NFTs)
   const claim = async () => {
     setIsLoading(true);
-    console.log('claim');
+    // console.log('claim');
     const ops = {
       contractAddress: addrStaking,
       functionName: "claimRewards",
       abi: abiStaking,
-      params: {
-      },
+      params: {},
     };
     await contractProcessor.fetch({
       params: ops,
@@ -48,10 +49,10 @@ const GameDashboardContent = ({ setShow, show }) => {
       },
       onError: (error) => {
         setIsLoading(false);
-        console.error(error)
-      }
+        console.error(error);
+      },
     });
-  }
+  };
   let arr = [];
   const getNFTs = async () => {
     const Staking = Moralis.Object.extend("Staking");
@@ -61,39 +62,42 @@ const GameDashboardContent = ({ setShow, show }) => {
     query.equalTo("addressStaking", addrStaking);
     query.equalTo("unstake", false);
     const arrObj = await query.find();
-    console.log("arrObj", arrObj)
+    // console.log("arrObj", arrObj)
     setNFTs(arrObj);
   };
 
   const getTotal = async () => {
     const res = await smStaking.methods.userStakeInfo(account).call();
-    // console.log(res);
-    setTotal(res._availableRewards / 10 ** 18)
-  }
-  
+    // // console.log(res);
+    setTotal(res._availableRewards / 10 ** 18);
+  };
+
   useEffect(() => {
     if (isAuthenticated && account) {
-        (async () => {
-          await getNFTs()
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          // const provider = new ethers.providers.WebSocketProvider('wss://ws-nd-524-739-052.p2pify.com/9984e6c12c83e092549386bc36509a29');
-          const contract = new ethers.Contract(addrCollection, abiCollection, provider);
-          const balanceOf = await contract.balanceOf(account);
-          console.log("BalanceOf", balanceOf.toString());
-          setBalance(balanceOf.toString())
-        })()
+      (async () => {
+        await getNFTs();
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        // const provider = new ethers.providers.WebSocketProvider('wss://ws-nd-524-739-052.p2pify.com/9984e6c12c83e092549386bc36509a29');
+        const contract = new ethers.Contract(
+          addrCollection,
+          abiCollection,
+          provider
+        );
+        const balanceOf = await contract.balanceOf(account);
+        // console.log("BalanceOf", balanceOf.toString());
+        setBalance(balanceOf.toString());
+      })();
     } else {
       setNFTs([]);
     }
   }, [account, isAuthenticated]);
   useEffect(() => {
-    if(account && isAuthenticated) {
+    if (account && isAuthenticated) {
       getTotal();
-    }else{
+    } else {
       setTotal(0);
     }
   }, [account, isAuthenticated]);
-
 
   return (
     <div className={clsx(styles.gameDashboard)}>
@@ -107,27 +111,27 @@ const GameDashboardContent = ({ setShow, show }) => {
       <div className={clsx(styles.gameDashboardTitle)}>Staking</div>
 
       <div className={clsx(styles.gameDashboardContent)}>
-        {
-          NFTs.map((e, index) => (
-            <LayoutItemContent
-              key={index}
-              item={{
-                title: e.attributes.name,
-                description: e.attributes.description,
-                code: "#" + e.attributes.tokenId,
-                tokenId: e.attributes.tokenId,
-                stakeTime: e.attributes?.stakeTime ?? e.attributes.createdAt,
-              }}
-              type={e.attributes.type}
-              image={e.attributes.image}
-            />
-          ))
-        }
+        {NFTs.map((e, index) => (
+          <LayoutItemContent
+            key={index}
+            item={{
+              title: e.attributes.name,
+              description: e.attributes.description,
+              code: "#" + e.attributes.tokenId,
+              tokenId: e.attributes.tokenId,
+              stakeTime: e.attributes?.stakeTime ?? e.attributes.createdAt,
+            }}
+            type={e.attributes.type}
+            image={e.attributes.image}
+          />
+        ))}
       </div>
 
-      <div className={clsx(styles.gameDashboardFooter,{
-        [styles.show]: show,
-      })}>
+      <div
+        className={clsx(styles.gameDashboardFooter, {
+          [styles.show]: show,
+        })}
+      >
         <div>
           <p className={styles.gameDashboardFooterTitle}>Total Rewards</p>
           <div className={clsx("input-text", styles.inputCollectible)}>
@@ -137,7 +141,14 @@ const GameDashboardContent = ({ setShow, show }) => {
 
         <div>
           <p className={styles.gameDashboardFooterTitle}>Daily NFTs Staking</p>
-          <Button block disabled={(total <= 0)} loading = {isLoading} onClick={() => claim()}>Claim</Button>
+          <Button
+            block
+            disabled={total <= 0}
+            loading={isLoading}
+            onClick={() => claim()}
+          >
+            Claim
+          </Button>
         </div>
       </div>
     </div>
