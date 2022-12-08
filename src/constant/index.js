@@ -33,7 +33,7 @@ const Constants = {
   LIMIT_REFERRAL_LEVEL: 6,
   GOOGLE_CLOUD_STORAGE_BUCKET:
     "https://storage.googleapis.com/guardians_of_the_galaxy/",
-  GATEWAY_HOSTNAME: "dweb.link",
+  GATEWAY_HOSTNAME: "cf-ipfs.com",
   staking: {
     duration: {
       VALUE: 1,
