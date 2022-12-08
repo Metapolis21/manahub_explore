@@ -4,13 +4,13 @@ import clsx from "clsx";
 import styles from "../../../styles.module.css";
 import { Button } from "antd";
 import { useState } from "react";
-import { useMoralis, useWeb3ExecuteFunction } from 'react-moralis';
+import { useMoralis } from 'react-moralis';
 import Constants from "constant";
 import { checkWalletConnection } from "helpers/auth";
 import { failureModal } from "helpers/modals";
 import { ethers } from "ethers";
 
-const LayoutItem = ({ item, type, image, setBalance }) => {
+const LayoutItem = ({ item, type, image }) => {
   const { Moralis, authenticate, account, isAuthenticated } = useMoralis();
   const serverURL = process.env.REACT_APP_MORALIS_SERVER_URL;
   const appId = process.env.REACT_APP_MORALIS_APPLICATION_ID;
@@ -20,20 +20,21 @@ const LayoutItem = ({ item, type, image, setBalance }) => {
   const abiStaking = JSON.parse(Constants.contracts.STAKING_ABI);
   const addrCollection = Constants.contracts.NFT_COLLECTION_ADDRESS;
   const abiCollection = JSON.parse(Constants.contracts.NFT_COLLECTION_ABI);
-  const contractProcessor = useWeb3ExecuteFunction();
   const [isLoading, setIsLoading] = useState(false);
 
-  const saveStakingInfo = async () => {
+  const saveStakingInfo = async (tokenId) => {
     const Staking = Moralis.Object.extend("Staking");
     const query = new Moralis.Query(Staking);
-    query.equalTo("tokenId", item.tokenId);
+    query.equalTo("tokenId", tokenId);
     query.equalTo("staker", account);
     query.equalTo("addressNFT", addrCollection);
     query.equalTo("addressStaking", addrStaking);
+    console.log("Query", query)
     const result = await query.first();
+    console.log("Result", result)
     if (!result) {
       const staking = new Staking()
-      staking.set("tokenId", item.tokenId);
+      staking.set("tokenId", tokenId);
       staking.set("staker", account);
       staking.set("addressNFT", addrCollection);
       staking.set("addressStaking", addrStaking);
@@ -50,19 +51,16 @@ const LayoutItem = ({ item, type, image, setBalance }) => {
       result.set("unstake", false);
       await result.save();
     }
-    // const balanceOf = await contractNFT.balanceOf(account);
-    // console.log("BalanceOf", balanceOf.toString());
-    // setBalance(balanceOf.toString())
     console.log("Save success")
     setIsLoading(false)
   }
 
 
-  async function approve() {
+  async function stakeNFT() {
     const tokenId = item?.tokenId.toString()
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const userSigner = provider.getSigner()
+      const userSigner = await provider.getSigner()
       console.log("User signer", userSigner);
       const contractNFT = new ethers.Contract(addrCollection, abiCollection, userSigner)
       const contractStaking = new ethers.Contract(addrStaking, abiStaking, userSigner)
@@ -74,7 +72,7 @@ const LayoutItem = ({ item, type, image, setBalance }) => {
       const txStake = await contractStaking.stake([tokenId])
       await txStake.wait();
       console.log("Tx stake hash", txStake.hash);
-      await saveStakingInfo()
+      await saveStakingInfo(tokenId)
       setIsLoading(false)
       window.location.reload()
     } catch (err) {
@@ -119,7 +117,7 @@ const LayoutItem = ({ item, type, image, setBalance }) => {
 
   async function handleStakingClicked() {
     setIsLoading(true);
-    await checkWalletConnection(isAuthenticated, authenticate, approve)
+    await checkWalletConnection(isAuthenticated, authenticate, stakeNFT)
   }
   return (
     <div className={clsx([styles.layoutItem, styles[type]])}>
