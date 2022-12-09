@@ -8,6 +8,7 @@ import { useState } from "react";
 import axios from "axios";
 import Constants from "constant";
 import { failureModal } from "helpers/modals";
+import IPFSGatewayTools from "@pinata/ipfs-gateway-tools/dist/browser";
 import { ethers } from "ethers";
 
 const DashboardLayout = ({ setShow, show }) => {
@@ -16,6 +17,7 @@ const DashboardLayout = ({ setShow, show }) => {
   const [balance, setBalance] = useState(0);
   const addrCollection = Constants.contracts.NFT_COLLECTION_ADDRESS;
   const abiCollection = JSON.parse(Constants.contracts.NFT_COLLECTION_ABI);
+  const gatewayTools = new IPFSGatewayTools();
   const [NFTs, setNFTs] = useState([]);
   // comment this
   // const web3Js = new Web3(
@@ -28,12 +30,13 @@ const DashboardLayout = ({ setShow, show }) => {
   // }, [addrCollection, abiCollection]);
   const getNFTs = useCallback(async () => {
     if (account) {
-      console.log('window.ethereum', window.ethereum)
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      console.log("provider", provider)
-      const signer = await provider.getSigner();
-      console.log("signer", signer)
-      const contract = new ethers.Contract(addrCollection, abiCollection, signer);
+      const contract = new ethers.Contract(addrCollection,
+        [
+          "function balanceOf(address account) external view returns (uint256)",
+          "function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (uint256)",
+          "function tokenURI(uint256 tokenId) external view returns (string memory)"
+        ]
+        , Constants.provider);
       try {
         // const sm = new ethers.Contract(addrCollection, ['function balanceOf(address) external view returns (uint256)'], signer);
         // console.log("account", await sm.balanceOf(account))
@@ -42,12 +45,16 @@ const DashboardLayout = ({ setShow, show }) => {
         console.log("balance", balance)
         for (let i = 0; i < balance; i++) {
           let tokenId = await contract.tokenOfOwnerByIndex(account, i);
-          let tokenURI = await contract.tokenURI(tokenId);
-          if (tokenURI.includes("ipfs://bafy")) {
-            tokenURI = tokenURI.replace("ipfs://", "");
-            let arrStr = tokenURI.split("/");
-            tokenURI = `https://${arrStr[0]}.ipfs.${Constants.GATEWAY_HOSTNAME}/${arrStr[1]}`;
+          // if (tokenURI.includes("ipfs://bafy")) {
+          //   tokenURI = tokenURI.replace("ipfs://", "");
+          //   let arrStr = tokenURI.split("/");
+          //   tokenURI = `https://${arrStr[0]}.ipfs.${Constants.GATEWAY_HOSTNAME}/${arrStr[1]}`;
+          // }
+          let tokenURI = (await contract.tokenURI(tokenId)).toString();
+          if (gatewayTools.containsCID(tokenURI).containsCid) {
+            tokenURI = gatewayTools.convertToDesiredGateway(tokenURI, Constants.GATEWAY);
           }
+          console.log("tokenURI", tokenURI);
           const metadata = (await axios.get(tokenURI)).data;
           if (metadata) {
             // ipfs://[CID]/1.png
@@ -66,7 +73,7 @@ const DashboardLayout = ({ setShow, show }) => {
           }
         }
       } catch (error) {
-        // console.log(error);
+        console.log(error);
         failureModal("Some thing went wrong", error.message);
       }
     }
@@ -75,7 +82,10 @@ const DashboardLayout = ({ setShow, show }) => {
   useEffect(() => {
     // console.log("isAuthenticated", isAuthenticated);
     if (isAuthenticated && account) {
+      setNFTs([]);
       getNFTs();
+    } else {
+      setNFTs([]);
     }
   }, [isAuthenticated, account]);
 
