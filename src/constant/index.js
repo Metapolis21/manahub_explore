@@ -8,6 +8,7 @@ import {
 } from "./contractsInfo/nftCollection";
 import { stakingABI, stakingAddress } from "./contractsInfo/staking";
 import { tokenABI, tokenAddress } from "./contractsInfo/tokenERC20";
+import provider from "./provider";
 
 const Constants = {
   contracts: {
@@ -34,6 +35,7 @@ const Constants = {
   GOOGLE_CLOUD_STORAGE_BUCKET:
     "https://storage.googleapis.com/guardians_of_the_galaxy/",
   GATEWAY_HOSTNAME: "cf-ipfs.com",
+  GATEWAY: "https://myipfs.mypinata.cloud",
   staking: {
     duration: {
       VALUE: 1,
@@ -54,6 +56,7 @@ const Constants = {
   Mainnet: {
     chainID: 56,
   },
+  provider
 };
 
 export default Constants;
